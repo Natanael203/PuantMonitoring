@@ -1,0 +1,6 @@
+selected_sensors:
+  - "CPU Total"
+  - "CPU Package"
+  - "GPU Core"
+  - "Memory"
+  - "Charge Level"
