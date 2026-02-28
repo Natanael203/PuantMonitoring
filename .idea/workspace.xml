@@ -4,13 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6ca32076-64f0-45aa-94c3-21cbcd58db59" name="Changes" comment="init commit for NJA_DEV">
-      <change afterPath="$PROJECT_DIR$/Libs/DataWorker.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Libs/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parameters/data-read-config.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/parameters/selected_info.yaml" afterDir="false" />
+    <list default="true" id="6ca32076-64f0-45aa-94c3-21cbcd58db59" name="Changes" comment="0.0.2, selection des données ajoutées">
+      <change afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Version_info.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Version_info.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -91,7 +88,7 @@
       <option name="presentableId" value="Default" />
       <updated>1772302505846</updated>
       <workItem from="1772302507170" duration="1315000" />
-      <workItem from="1772305123989" duration="4506000" />
+      <workItem from="1772305123989" duration="5545000" />
     </task>
     <task id="LOCAL-00001" summary="init commit">
       <option name="closed" value="true" />
@@ -109,7 +106,15 @@
       <option name="project" value="LOCAL" />
       <updated>1772306523928</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="0.0.2, selection des données ajoutées">
+      <option name="closed" value="true" />
+      <created>1772311809008</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1772311809008</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -118,10 +123,11 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="init commit" />
     <MESSAGE value="init commit for NJA_DEV" />
-    <option name="LAST_COMMIT_MESSAGE" value="init commit for NJA_DEV" />
+    <MESSAGE value="0.0.2, selection des données ajoutées" />
+    <option name="LAST_COMMIT_MESSAGE" value="0.0.2, selection des données ajoutées" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/PythonProject1$Main.coverage" NAME="Main Coverage Results" MODIFIED="1772311572788" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/PythonProject1$DataWorker.coverage" NAME="DataWorker Coverage Results" MODIFIED="1772310690782" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Libs" />
+    <SUITE FILE_PATH="coverage/PythonProject1$Main.coverage" NAME="Main Coverage Results" MODIFIED="1772311746304" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/PythonProject1$DataWorker.coverage" NAME="DataWorker Coverage Results" MODIFIED="1772311741838" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Libs" />
   </component>
 </project>
