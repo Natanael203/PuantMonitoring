@@ -7,25 +7,29 @@ from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QWidget,
 from PySide6.QtCore import Qt
 from Libs.DataWorker import WebDataWorker
 
+VERSION = "0.0.4_Dev"
+
 
 class ModernUI(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("MSI Monitor - Pro Custom")
+        self.setWindowTitle(f"PuantMonitor {VERSION}")
         self.setMinimumSize(500, 750)
 
         # --- CONFIGURATION DES CHEMINS ---
         self.config_path = "parameters/settings.yaml"
-        os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
+        try:
+            os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
+        except Exception as e:
+            QMessageBox.critical(self, "Erreur Système", f"Impossible de créer le dossier de configuration :\n{e}")
 
-        # Valeurs par défaut personnalisables
         self.colors = {
             "background": "#000000",
-            "group_title": "#00D1FF",  # Titres (CPU, GPU...)
-            "progress_fill": "#e5e5e5",  # Remplissage de la barre
-            "sensor_text": "#6d6d6d",  # Texte des noms de capteurs
-            "pb_background": "#222222",  # Fond vide de la barre
-            "pb_text": "#ffffff"  # Pourcentage dans la barre
+            "group_title": "#00D1FF",
+            "progress_fill": "#e5e5e5",
+            "sensor_text": "#6d6d6d",
+            "pb_background": "#222222",
+            "pb_text": "#ffffff"
         }
         self.selected_names = set()
 
@@ -35,17 +39,14 @@ class ModernUI(QMainWindow):
         self.tabs = QTabWidget()
         self.setCentralWidget(self.tabs)
 
-        # Dashboard
         self.dash_scroll = self.setup_scroll_area("dash_container")
         self.dash_layout = self.dash_scroll.widget().layout()
         self.tabs.addTab(self.dash_scroll, "Dashboard")
 
-        # Sélection
         self.select_scroll = self.setup_scroll_area("select_container")
         self.select_layout = self.select_scroll.widget().layout()
         self.tabs.addTab(self.select_scroll, "Selection")
 
-        # Style
         self.style_scroll = self.setup_scroll_area("style_container")
         self.style_layout = self.style_scroll.widget().layout()
         self.add_style_section()
@@ -57,9 +58,15 @@ class ModernUI(QMainWindow):
 
         self.apply_theme()
 
-        self.worker = WebDataWorker()
-        self.worker.stats_signal.connect(self.update_ui)
-        self.worker.start()
+        # --- INITIALISATION DU WORKER ---
+        try:
+            self.worker = WebDataWorker()
+            self.worker.stats_signal.connect(self.update_ui)
+            self.worker.start()
+        except Exception as e:
+            QMessageBox.warning(self, "Erreur de Connexion",
+                                f"Le Worker de données n'a pas pu démarrer.\n"
+                                f"Vérifiez que le serveur MSI est actif.\n\nDétails : {e}")
 
     def setup_scroll_area(self, obj_name):
         scroll = QScrollArea()
@@ -104,16 +111,12 @@ class ModernUI(QMainWindow):
 
     def apply_theme(self):
         c = self.colors
-
-        # Style global : Onglets FIGÉS (Gris/Bleu), Contenu PERSONNALISABLE
         full_style = f"""
             QMainWindow, QTabWidget::pane, QScrollArea, QScrollArea > QWidget,
             #dash_container, #select_container, #style_container {{
                 background-color: {c['background']};
                 border: none;
             }}
-
-            /* STYLE FIGÉ POUR LES ONGLETS */
             QTabBar::tab {{
                 background-color: #222222;
                 color: #AAAAAA;
@@ -126,8 +129,6 @@ class ModernUI(QMainWindow):
                 color: black;
                 font-weight: bold;
             }}
-
-            /* ÉLÉMENTS PERSONNALISABLES */
             QGroupBox {{ 
                 border: 2px solid #333; 
                 border-radius: 8px; 
@@ -137,10 +138,8 @@ class ModernUI(QMainWindow):
                 padding-top: 15px;
             }}
             QGroupBox::title {{ subcontrol-origin: margin; left: 10px; padding: 0 5px; }}
-
             QLabel {{ color: {c['sensor_text']}; background: transparent; }}
             QCheckBox {{ color: {c['sensor_text']}; background: transparent; }}
-
             QPushButton {{ 
                 background-color: #333; 
                 color: white; 
@@ -150,7 +149,6 @@ class ModernUI(QMainWindow):
         """
         self.setStyleSheet(full_style)
 
-        # Mise à jour des barres dynamiques
         for name, w in self.widgets.items():
             w['lbl'].setStyleSheet(f"color: {c['sensor_text']}; font-weight: bold;")
             w['bar'].setStyleSheet(f"""
@@ -170,16 +168,20 @@ class ModernUI(QMainWindow):
                 with open(self.config_path, "r") as f:
                     config = yaml.safe_load(f) or {}
                     self.selected_names = set(config.get("selected_sensors", []))
-                    if "colors" in config: self.colors.update(config["colors"])
-            except:
-                pass
+                    if "colors" in config:
+                        self.colors.update(config["colors"])
+            except Exception as e:
+                QMessageBox.warning(self, "Erreur de Configuration",
+                                    f"Impossible de lire le fichier de config.\n"
+                                    f"Le fichier est peut-être corrompu.\n\nErreur : {e}")
 
     def save_config(self):
         try:
             with open(self.config_path, "w") as f:
                 yaml.dump({"selected_sensors": list(self.selected_names), "colors": self.colors}, f)
-        except:
-            pass
+        except Exception as e:
+            QMessageBox.critical(self, "Erreur de Sauvegarde",
+                                 f"Impossible d'enregistrer vos paramètres :\n{e}")
 
     def get_category_info(self, name):
         n = name.lower()
@@ -190,21 +192,33 @@ class ModernUI(QMainWindow):
         return "Other"
 
     def update_ui(self, data):
-        for item in data:
-            name, val, unit = item['name'], item['value'], item['unit']
-            if name not in self.checkboxes:
-                cb = QCheckBox(f"{name} ({unit})")
-                if name in self.selected_names: cb.setChecked(True)
-                cb.stateChanged.connect(lambda state, n=name: self.toggle_sensor(n, state))
-                self.select_layout.addWidget(cb)
-                self.checkboxes[name] = cb
+        # Sécurité : Si data est vide ou mal formé
+        if not data:
+            return
 
-            if name in self.selected_names:
-                if name not in self.widgets: self.create_bar(name)
-                self.widgets[name]['bar'].setValue(int(val))
-                self.widgets[name]['bar'].setFormat(f"{val} {unit}")
-            elif name in self.widgets:
-                self.remove_bar(name)
+        for item in data:
+            try:
+                name, val, unit = item['name'], item['value'], item['unit']
+
+                if name not in self.checkboxes:
+                    cb = QCheckBox(f"{name} ({unit})")
+                    if name in self.selected_names: cb.setChecked(True)
+                    cb.stateChanged.connect(lambda state, n=name: self.toggle_sensor(n, state))
+                    self.select_layout.addWidget(cb)
+                    self.checkboxes[name] = cb
+
+                if name in self.selected_names:
+                    if name not in self.widgets: self.create_bar(name)
+                    # Sécurité conversion en entier pour la barre
+                    try:
+                        self.widgets[name]['bar'].setValue(int(float(val)))
+                        self.widgets[name]['bar'].setFormat(f"{val} {unit}")
+                    except:
+                        pass
+                elif name in self.widgets:
+                    self.remove_bar(name)
+            except KeyError as e:
+                print(f"Donnée manquante dans le flux : {e}")
 
     def toggle_sensor(self, name, state):
         if state == 2:
