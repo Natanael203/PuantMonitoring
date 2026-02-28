@@ -6,8 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="6ca32076-64f0-45aa-94c3-21cbcd58db59" name="Changes" comment="added color selection 0.0.3">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Main.py" beforeDir="false" afterPath="$PROJECT_DIR$/Main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -29,6 +27,18 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "Natanael203"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/Natanael203/PuantMonitoring.git",
+    "accountId": "39ab60e3-3b03-46c8-984c-09ecc6c1de37"
+  }
+}]]></component>
   <component name="McpProjectServerCommands">
     <commands />
     <urls />
@@ -89,7 +99,7 @@
       <updated>1772302505846</updated>
       <workItem from="1772302507170" duration="1315000" />
       <workItem from="1772305123989" duration="9371000" />
-      <workItem from="1772316487616" duration="1008000" />
+      <workItem from="1772316487616" duration="1934000" />
     </task>
     <task id="LOCAL-00001" summary="init commit">
       <option name="closed" value="true" />
@@ -139,7 +149,23 @@
       <option name="project" value="LOCAL" />
       <updated>1772316738906</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="added color selection 0.0.3">
+      <option name="closed" value="true" />
+      <created>1772317533097</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1772317533097</updated>
+    </task>
+    <task id="LOCAL-00008" summary="added color selection 0.0.3">
+      <option name="closed" value="true" />
+      <created>1772317608097</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1772317608097</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
