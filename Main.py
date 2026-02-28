@@ -17,7 +17,9 @@ class ModernUI(QMainWindow):
         self.setMinimumSize(500, 750)
 
         # --- CONFIGURATION DES CHEMINS ---
-        self.config_path = "parameters/settings.yaml"
+        # Utilise le chemin du fichier actuel pour rester relatif au dossier de l'application
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        self.config_path = os.path.join(base_dir, "parameters", "settings.yaml")
         try:
             os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
         except Exception as e:
