@@ -12,7 +12,8 @@ winget install LibreHardwareMonitor.LibreHardwareMonitor
 
 3. Fermer le terminal,le logiciel est installé
 # Installation  :  
-Pour installer PuantMonitoring, il suffit de télecharger le fichier .zip PuantMonitoring_X.X.X.zip
+Pour installer PuantMonitoring, il suffit de télecharger le fichier .zip [PuantMonitoring_X.X.X.zip](PuantMonitor_0.0.4dev.zip). 
+Il faut ensuite unzip le fichier et lancer le .exe. 
 # Utilisation 
 
 Pour utiliser PuantMonitoring, il faut d'abord lancer le server web via LHM : 
