@@ -1,0 +1,5 @@
+0.X.X :
+    0.0.X :
+
+        0.0.1 : - Bases du logiciel, récuperation des données à partir de LHM, affichage simple avec pyside6
+
