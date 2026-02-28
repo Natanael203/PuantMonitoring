@@ -1,5 +1,6 @@
 0.X.X :
     0.0.X :
+        0.0.3 : - added color selection for themes
         0.0.2 : - selection des données à afficher ajoutées dans un onglet paramétre, mémoire des choix
         0.0.1 : - Bases du logiciel, récuperation des données à partir de LHM, affichage simple avec pyside6
 
