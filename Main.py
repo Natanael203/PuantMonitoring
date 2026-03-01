@@ -3,23 +3,34 @@ import yaml
 import os
 from PySide6.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QWidget,
                                QLabel, QProgressBar, QScrollArea, QTabWidget,
-                               QCheckBox, QGroupBox, QMessageBox, QPushButton, QColorDialog)
+                               QCheckBox, QGroupBox, QMessageBox, QPushButton,
+                               QColorDialog, QFileDialog, QSizePolicy)
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QMovie, QPixmap
 from Libs.DataWorker import WebDataWorker
 
-VERSION = "0.0.4_Dev"
+VERSION = "0.0.5_Dev"
 
 
 class ModernUI(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle(f"PuantMonitor {VERSION}")
+
+        # Initialisation par défaut
         self.setMinimumSize(500, 750)
 
+        # --- FOND D'ÉCRAN (LAYER 0) ---
+        self.bg_label = QLabel(self)
+        self.bg_label.setScaledContents(True)
+        self.bg_label.lower()
+        self.movie = None
+        self.bg_ratio = None
+
         # --- CONFIGURATION DES CHEMINS ---
-        # Utilise le chemin du fichier actuel pour rester relatif au dossier de l'application
         base_dir = os.path.dirname(os.path.abspath(__file__))
         self.config_path = os.path.join(base_dir, "parameters", "settings.yaml")
+
         try:
             os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
         except Exception as e:
@@ -31,7 +42,8 @@ class ModernUI(QMainWindow):
             "progress_fill": "#e5e5e5",
             "sensor_text": "#6d6d6d",
             "pb_background": "#222222",
-            "pb_text": "#ffffff"
+            "pb_text": "#ffffff",
+            "bg_path": ""
         }
         self.selected_names = set()
 
@@ -60,19 +72,37 @@ class ModernUI(QMainWindow):
 
         self.apply_theme()
 
-        # --- INITIALISATION DU WORKER ---
+        if self.colors.get("bg_path"):
+            self.update_background(self.colors["bg_path"])
+
         try:
             self.worker = WebDataWorker()
             self.worker.stats_signal.connect(self.update_ui)
             self.worker.start()
         except Exception as e:
-            QMessageBox.warning(self, "Erreur de Connexion",
-                                f"Le Worker de données n'a pas pu démarrer.\n"
-                                f"Vérifiez que le serveur MSI est actif.\n\nDétails : {e}")
+            QMessageBox.warning(self, "Erreur de Connexion", f"Le Worker a échoué.\nDétails : {e}")
+
+    def resizeEvent(self, event):
+        """Ajuste le fond et gère le ratio"""
+        if self.bg_ratio:
+            curr_w = self.width()
+            curr_h = self.height()
+
+            # On calcule la hauteur théorique
+            target_h = int(curr_w / self.bg_ratio)
+
+            if abs(target_h - curr_h) > 5:
+                # On ajuste la taille sans boucler à l'infini
+                self.resize(curr_w, target_h)
+
+        self.bg_label.setGeometry(0, 0, self.width(), self.height())
+        super().resizeEvent(event)
 
     def setup_scroll_area(self, obj_name):
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
+        # Permettre au contenu de se réduire plus que sa taille recommandée
+        scroll.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
         container = QWidget()
         container.setObjectName(obj_name)
         layout = QVBoxLayout(container)
@@ -81,28 +111,30 @@ class ModernUI(QMainWindow):
         return scroll
 
     def add_style_section(self):
-        lbl = QLabel("Choose color")
-        lbl.setStyleSheet("font-size: 16px; font-weight: bold; margin-bottom: 10px; color: white;")
-        self.style_layout.addWidget(lbl)
-
+        self.style_layout.addWidget(QLabel("<b>Couleurs de l'interface</b>"))
         colors_to_edit = [
-            ("Background", "background"),
-            ("Group Title", "group_title"),
-            ("Sensor Names", "sensor_text"),
-            ("--- Progress Bars  ---", None),
-            ("Filling Color", "progress_fill"),
-            ("Background Color", "pb_background"),
-            ("Value", "pb_text")
+            ("Fond (si pas d'image)", "background"),
+            ("Titres Groupes", "group_title"),
+            ("Noms Capteurs", "sensor_text"),
+            ("Barre : Remplissage", "progress_fill"),
+            ("Barre : Fond", "pb_background"),
+            ("Barre : Texte", "pb_text")
         ]
 
         for label, key in colors_to_edit:
-            if key is None:
-                self.style_layout.addWidget(QLabel(f"\n{label}"))
-                continue
             btn = QPushButton(label)
-            btn.setCursor(Qt.PointingHandCursor)
             btn.clicked.connect(lambda checked=False, k=key: self.pick_color(k))
             self.style_layout.addWidget(btn)
+
+        self.style_layout.addWidget(QLabel("<br><b>Fond d'écran (Image ou GIF)</b>"))
+
+        btn_bg = QPushButton("Choisir une image / GIF")
+        btn_bg.clicked.connect(self.pick_background)
+        self.style_layout.addWidget(btn_bg)
+
+        btn_reset = QPushButton("Reset Fond")
+        btn_reset.clicked.connect(self.reset_background)
+        self.style_layout.addWidget(btn_reset)
 
     def pick_color(self, key):
         color = QColorDialog.getColor()
@@ -111,56 +143,82 @@ class ModernUI(QMainWindow):
             self.save_config()
             self.apply_theme()
 
+    def pick_background(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Choisir fond", "", "Images (*.png *.jpg *.jpeg *.gif)")
+        if file_path:
+            self.colors["bg_path"] = file_path
+            self.save_config()
+            self.update_background(file_path)
+
+    def reset_background(self):
+        self.colors["bg_path"] = ""
+        self.bg_ratio = None
+        self.setMinimumSize(500, 750)  # On remet la sécurité par défaut
+
+        if self.movie:
+            self.movie.stop()
+            self.bg_label.setMovie(None)  # On détache le GIF
+
+        # Correction : On utilise un QPixmap vide au lieu de None
+        self.bg_label.setPixmap(QPixmap())
+
+        self.save_config()
+        self.apply_theme()
+
+    def update_background(self, path):
+        if not os.path.exists(path):
+            return
+
+        if path.lower().endswith(".gif"):
+            if self.movie: self.movie.stop()
+            self.movie = QMovie(path)
+            self.bg_label.setMovie(self.movie)
+            self.movie.start()
+            self.movie.jumpToFrame(0)
+            size = self.movie.currentPixmap().size()
+        else:
+            if self.movie: self.movie.stop()
+            pixmap = QPixmap(path)
+            self.bg_label.setPixmap(pixmap)
+            size = pixmap.size()
+
+        if size.height() > 0:
+            self.bg_ratio = size.width() / size.height()
+            # On réduit les contraintes de taille minimale pour permettre le ratio
+            self.setMinimumSize(100, 100)
+            self.resize(self.width(), int(self.width() / self.bg_ratio))
+
+        self.apply_theme()
+
     def apply_theme(self):
         c = self.colors
+        bg_main = "transparent" if c.get("bg_path") else c['background']
+
         full_style = f"""
             QMainWindow, QTabWidget::pane, QScrollArea, QScrollArea > QWidget,
             #dash_container, #select_container, #style_container {{
-                background-color: {c['background']};
+                background-color: {bg_main};
                 border: none;
             }}
             QTabBar::tab {{
-                background-color: #222222;
-                color: #AAAAAA;
-                padding: 10px;
-                min-width: 110px;
-                border: 1px solid #333;
+                background-color: #222222; color: #AAAAAA; padding: 10px; border: 1px solid #333;
             }}
             QTabBar::tab:selected {{
-                background-color: #d0d0d0;
-                color: black;
-                font-weight: bold;
+                background-color: #d0d0d0; color: black; font-weight: bold;
             }}
             QGroupBox {{ 
-                border: 2px solid #333; 
-                border-radius: 8px; 
-                margin-top: 20px; 
-                font-weight: bold; 
-                color: {c['group_title']};
-                padding-top: 15px;
+                border: 2px solid rgba(100, 100, 100, 150); 
+                border-radius: 8px; margin-top: 20px; 
+                color: {c['group_title']}; font-weight: bold;
+                background-color: rgba(0, 0, 0, 100); 
             }}
-            QGroupBox::title {{ subcontrol-origin: margin; left: 10px; padding: 0 5px; }}
-            QLabel {{ color: {c['sensor_text']}; background: transparent; }}
-            QCheckBox {{ color: {c['sensor_text']}; background: transparent; }}
-            QPushButton {{ 
-                background-color: #333; 
-                color: white; 
-                border-radius: 5px; 
-                padding: 10px; 
-            }}
+            QLabel, QCheckBox {{ color: {c['sensor_text']}; background: transparent; }}
+            QPushButton {{ background-color: #333; color: white; border-radius: 5px; padding: 8px; }}
         """
         self.setStyleSheet(full_style)
-
         for name, w in self.widgets.items():
-            w['lbl'].setStyleSheet(f"color: {c['sensor_text']}; font-weight: bold;")
             w['bar'].setStyleSheet(f"""
-                QProgressBar {{ 
-                    border: 1px solid #444; 
-                    border-radius: 4px; 
-                    text-align: center; 
-                    color: {c['pb_text']}; 
-                    background-color: {c['pb_background']}; 
-                }}
+                QProgressBar {{ border: 1px solid #444; border-radius: 4px; text-align: center; color: {c['pb_text']}; background-color: {c['pb_background']}; }}
                 QProgressBar::chunk {{ background-color: {c['progress_fill']}; }}
             """)
 
@@ -170,20 +228,16 @@ class ModernUI(QMainWindow):
                 with open(self.config_path, "r") as f:
                     config = yaml.safe_load(f) or {}
                     self.selected_names = set(config.get("selected_sensors", []))
-                    if "colors" in config:
-                        self.colors.update(config["colors"])
-            except Exception as e:
-                QMessageBox.warning(self, "Erreur de Configuration",
-                                    f"Impossible de lire le fichier de config.\n"
-                                    f"Le fichier est peut-être corrompu.\n\nErreur : {e}")
+                    if "colors" in config: self.colors.update(config["colors"])
+            except:
+                pass
 
     def save_config(self):
         try:
             with open(self.config_path, "w") as f:
                 yaml.dump({"selected_sensors": list(self.selected_names), "colors": self.colors}, f)
-        except Exception as e:
-            QMessageBox.critical(self, "Erreur de Sauvegarde",
-                                 f"Impossible d'enregistrer vos paramètres :\n{e}")
+        except:
+            pass
 
     def get_category_info(self, name):
         n = name.lower()
@@ -194,24 +248,18 @@ class ModernUI(QMainWindow):
         return "Other"
 
     def update_ui(self, data):
-        # Sécurité : Si data est vide ou mal formé
-        if not data:
-            return
-
+        if not data: return
         for item in data:
             try:
                 name, val, unit = item['name'], item['value'], item['unit']
-
                 if name not in self.checkboxes:
                     cb = QCheckBox(f"{name} ({unit})")
                     if name in self.selected_names: cb.setChecked(True)
                     cb.stateChanged.connect(lambda state, n=name: self.toggle_sensor(n, state))
                     self.select_layout.addWidget(cb)
                     self.checkboxes[name] = cb
-
                 if name in self.selected_names:
                     if name not in self.widgets: self.create_bar(name)
-                    # Sécurité conversion en entier pour la barre
                     try:
                         self.widgets[name]['bar'].setValue(int(float(val)))
                         self.widgets[name]['bar'].setFormat(f"{val} {unit}")
@@ -219,8 +267,8 @@ class ModernUI(QMainWindow):
                         pass
                 elif name in self.widgets:
                     self.remove_bar(name)
-            except KeyError as e:
-                print(f"Donnée manquante dans le flux : {e}")
+            except:
+                pass
 
     def toggle_sensor(self, name, state):
         if state == 2:
@@ -236,12 +284,13 @@ class ModernUI(QMainWindow):
             layout = QVBoxLayout(group)
             self.dash_layout.addWidget(group)
             self.groups[cat_name] = (group, layout)
-
         target_layout = self.groups[cat_name][1]
         lbl = QLabel(name)
         bar = QProgressBar()
         bar.setRange(0, 100)
         bar.setFixedHeight(22)
+        bar.setFixedWidth(250)
+
         target_layout.addWidget(lbl)
         target_layout.addWidget(bar)
         self.widgets[name] = {'bar': bar, 'lbl': lbl, 'cat': cat_name}
